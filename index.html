@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Vite + Vue + TS</title>
       <style>
@@ -21,12 +21,24 @@
               }
           }
 
-          .ios .qzhlnise.dialog > .content {
+          /* サイドバーとウィジェット */
+          .ios ._menuDrawer_bf6hp_183, .ios ._widgetsDrawer_bf6hp_94 {
+              padding-top: calc( 16px) !important;
+          }
+          @supports (bottom: env(safe-area-inset-bottom)) {
+               .ios ._menuDrawer_bf6hp_183, .ios ._widgetsDrawer_bf6hp_94 {
+                  padding-top: calc(env(safe-area-inset-top)) !important;
+                  padding-bottom: calc(env(safe-area-inset-bottom) + 16px) !important;
+              }
+          }
+
+          /*  投稿ダイアログ */
+          .ios ._content_hgr5a_5 {
               padding-top: calc(20px + 16px) !important;
 
           }
           @supports (bottom: env(safe-area-inset-bottom)) {
-              .ios .qzhlnise.dialog > .content {
+              .ios ._content_hgr5a_5 {
                   padding-top: calc(env(safe-area-inset-top) + 16px) !important;
               }
           }
