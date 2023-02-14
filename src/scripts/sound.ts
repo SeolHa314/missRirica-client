@@ -69,7 +69,7 @@ export async function playFile(file: string, volume: number) {
 
 	const soundSource = ctx.createBufferSource();
 	const gainNode = ctx.createGain();
-	soundSource.buffer = await getAudio(file);
+	soundSource.buffer = await getAudio(file) ?? null;
 	gainNode.gain.value = masterVolume * volume;
 	soundSource.connect(gainNode).connect(ctx.destination);
 	soundSource.start();
