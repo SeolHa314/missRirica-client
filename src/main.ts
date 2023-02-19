@@ -50,42 +50,10 @@ import {Device} from "@capacitor/device";
 import lightTheme from "@/themes/_light.json5";
 import OneSignal from "onesignal-cordova-plugin";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
-import { get } from 'idb-keyval';
+import { get } from '@/scripts/idb-proxy';
 export let storedDeviceInfo: Object
 
 (async () => {
-	// TODO: implement login after getting token
-	App.addListener('appUrlOpen', async (data: URLOpenListenerEvent) => {
-		console.log('App opened with URL:', JSON.stringify(data))
-		const openUrl = new URL(data.url)
-		console.log(openUrl.protocol, openUrl.hostname)
-		if(openUrl.hostname === 'callback') {
-			if(openUrl.pathname === '/auth') {
-				const sessionID = openUrl.searchParams.get('session')
-				const miauthSession: {sessionID: string; instanceUrl: string}[] = (await get('miauth_sessions')) || []
-				const instanceUrl = miauthSession.find(authObject => authObject.sessionID === sessionID)?.instanceUrl
-				if(!instanceUrl) return
-				const reqres = await fetch(`${instanceUrl}/api/miauth/${sessionID}/check`,
-					{
-						method: "POST", // *GET, POST, PUT, DELETE, etc.
-						mode: "cors", // no-cors, *cors, same-origin
-						cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-						credentials: "same-origin", // include, *same-origin, omit
-						headers: {
-							"Content-Type": "application/json",
-						},
-						redirect: "follow", // manual, *follow, error
-						referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-			
-					}
-				).catch(err => console.error(err))
-				const authres = await reqres?.json()
-				if (authres.ok === false) return
-				const userToken = authres.token
-				await login(userToken, instanceUrl) // full url on host
-			}
-		}
-	})
 	
 	console.info(`Misskey v${version}`);
 	const lang = await setLanguage(localStorage.getItem("lang") || await Device.getLanguageCode().value || "ja-JP")
@@ -304,7 +272,29 @@ export let storedDeviceInfo: Object
 		}
 	})
 
-	
+	App.addListener('appUrlOpen', async (data: URLOpenListenerEvent) => {
+		console.log('App opened with URL:', JSON.stringify(data))
+		const openUrl = new URL(data.url)
+		if(openUrl.hostname === 'callback') {
+			if(openUrl.pathname === '/auth') {
+				const sessionID = openUrl.searchParams.get('session')
+				const miauthSession: {sessionID: string; instanceUrl: string}[] = (await get('miauth_sessions')) || []
+				const currentInstance = miauthSession.find(authObject => authObject.sessionID === sessionID)!
+				if(!currentInstance) return
+				const reqres = await fetch(`${currentInstance.instanceUrl}/api/miauth/${sessionID}/check`,
+					{
+						method: "POST", // *GET, POST, PUT, DELETE, etc.
+						mode: "cors"
+					}
+				).catch(err => console.error(err))
+				const authres = await reqres?.json()
+				if (authres.ok === false) return
+				const userToken = authres.token
+				await login(userToken, currentInstance.instanceUrl) // full url on host
+			}
+		}
+	})
+
 })();
 
 

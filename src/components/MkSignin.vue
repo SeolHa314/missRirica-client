@@ -63,7 +63,7 @@ import { i18n } from '@/i18n';
 
 import { AppLauncher } from '@capacitor/app-launcher';
 import { v4 as uuidv4 } from 'uuid';
-import { set } from 'idb-keyval';
+import { get, set } from '@/scripts/idb-proxy';
 
 let signing = $ref(false);
 let user = $ref(null);
@@ -177,8 +177,8 @@ async function onSubmit() {
 	authURL.searchParams.append('name', 'missRirica')
 	authURL.searchParams.append('callback', 'missririca://callback/auth')
 	authURL.searchParams.append('permission', 'read:account","write:account","read:blocks","write:blocks","read:drive","write:drive","read:favorites","write:favorites","read:following","write:following","read:messaging","write:messaging","read:mutes","write:mutes","write:notes","read:notifications","write:notifications","read:reactions","write:reactions","write:votes","read:pages","write:pages","write:page-likes","read:page-likes","read:user-groups","write:user-groups","read:channels","write:channels","read:gallery","write:gallery","read:gallery-likes","write:gallery-likes')
-	await set('miauth_sessions', {sessionID: sessionUUID, instanceUrl: instanceUrlResult})
-	console.log("submit");
+	const sessions = (await get('miauth_sessions')) || []
+	await set('miauth_sessions', sessions.concat([{sessionID: sessionUUID, instanceUrl: instanceUrlResult}]))
 	await AppLauncher.openUrl({url: authURL.href});
   /*if (!token.value) {
     login(token, instanceUrlResult);
