@@ -20,6 +20,7 @@
 				required
 			/>
 		</template>
+		<!--
 		{{ i18n.ts.ririca.accessToken }}
 		<MkInput
 			v-model="token"
@@ -28,6 +29,7 @@
 			required
 			data-cy-signin-username
 		></MkInput>
+		-->
 		<MkButton
 			class="_formBlock"
 			type="submit"
@@ -58,6 +60,10 @@ import * as os from '@/os';
 import { login } from '@/account';
 import { instance } from '@/instance';
 import { i18n } from '@/i18n';
+
+import { AppLauncher } from '@capacitor/app-launcher';
+import { v4 as uuidv4 } from 'uuid';
+import { set } from 'idb-keyval';
 
 let signing = $ref(false);
 let user = $ref(null);
@@ -163,13 +169,21 @@ function queryKey() {
 	});
 }
 
-function onSubmit() {
+async function onSubmit() {
 	signing = true;
-  console.log("submit");
-  if (!token.value) {
+	const sessionUUID = uuidv4()
+	const authURL = new URL(instanceUrlResult)
+	authURL.pathname = "/miauth/" + `${sessionUUID}`
+	authURL.searchParams.append('name', 'missRirica')
+	authURL.searchParams.append('callback', 'missririca://callback/auth')
+	authURL.searchParams.append('permission', 'read:account","write:account","read:blocks","write:blocks","read:drive","write:drive","read:favorites","write:favorites","read:following","write:following","read:messaging","write:messaging","read:mutes","write:mutes","write:notes","read:notifications","write:notifications","read:reactions","write:reactions","write:votes","read:pages","write:pages","write:page-likes","read:page-likes","read:user-groups","write:user-groups","read:channels","write:channels","read:gallery","write:gallery","read:gallery-likes","write:gallery-likes')
+	await set('miauth_sessions', {sessionID: sessionUUID, instanceUrl: instanceUrlResult})
+	console.log("submit");
+	await AppLauncher.openUrl({url: authURL.href});
+  /*if (!token.value) {
     login(token, instanceUrlResult);
     signing = false;
-  }
+  }*/
 }
 
 function loginFailed(err) {
